@@ -10,6 +10,8 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
+    let defaults = UserDefaults.standard
+    
     var itemArray = ["Find Mike", "Buy Eggos", "Destroy Demagorgon"]
     
     
@@ -17,6 +19,11 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        //Load the items from the user prefs
+        if let items = defaults.array(forKey: "TodoListArray") as? [String]{
+            itemArray = items
+        }
     }
     
     //MARK: Tableview datasource methods
@@ -69,7 +76,11 @@ class TodoListViewController: UITableViewController {
             //What will happen when the user clicks the add item button
             
             self.itemArray.append(newTextField.text!)
-           self.tableView.reloadData()
+            self.tableView.reloadData()
+            
+            
+            //Save the array to user defaults. Similar to Android SharedPreferences
+           self.defaults.set(self.itemArray, forKey: "TodoListArray")
             
         }
         
