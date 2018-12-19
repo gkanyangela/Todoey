@@ -11,6 +11,7 @@ import UIKit
 class TodoListViewController: UITableViewController {
     
     let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     var itemArray = [Item]()
     
@@ -22,16 +23,12 @@ class TodoListViewController: UITableViewController {
         
         //Load the items from the user prefs
         
-//        let newItem = Item()
-//        newItem.title = "Find Mike"
-//        itemArray.append(newItem)
         
         
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item]{
-            
-            itemArray = items
-            
-        }
+        print("Data file path: \(dataFilePath!)")
+        
+        
+        loadItems()
     }
     
     //MARK: Tableview datasource methods
@@ -63,6 +60,9 @@ class TodoListViewController: UITableViewController {
         //Put up the checkmark when an item is selected
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
+        saveItems()
+        
+        
         //Reload the data
         tableView.reloadData()
         
@@ -78,6 +78,7 @@ class TodoListViewController: UITableViewController {
         var newTextField = UITextField()
         
         let alert = UIAlertController(title: "Add new Todoey item", message: "", preferredStyle: .alert)
+        
         let action = UIAlertAction(title: "Add item", style: .default) { (action) in
             
             //What will happen when the user clicks the add item button
@@ -89,7 +90,9 @@ class TodoListViewController: UITableViewController {
             self.tableView.reloadData()
             
             //Save the array to user defaults. Similar to Android SharedPreferences
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            self.saveItems()
+            
+            
             
         }
         
@@ -103,6 +106,45 @@ class TodoListViewController: UITableViewController {
         alert.addAction(action)
         present(alert,animated: true,completion: nil)
         
+    }
+    
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        
+        do{
+            
+            let arrayData = try encoder.encode(itemArray)
+            try arrayData.write(to: dataFilePath!)
+            
+            
+        }catch{
+            
+            print("Encoding error: \(error)")
+        }
+        
+        
+        tableView.reloadData()
+        
+    }
+    
+    func loadItems() {
+        
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            
+            do{
+                itemArray = try decoder.decode([Item].self, from: data)
+                
+            }catch{
+                print(error)
+            }
+            
+        }
+        
+        
+        
+        
+        tableView.reloadData()
     }
 }
 
